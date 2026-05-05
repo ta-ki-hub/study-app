@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>👑 おひめさまべんきょう</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Hiragino Maru Gothic Pro', 'Rounded Mplus 1c', sans-serif;
+      background: linear-gradient(135deg, #ffe4f0 0%, #f8d7f8 40%, #dce4ff 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .bg-star { position: absolute; font-size: 18px; opacity: 0.25; animation: twinkle 3s infinite alternate; }
+    @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.8); } 100% { opacity: 0.35; transform: scale(1.2); } }
+
+    .container { width: 100%; max-width: 420px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; position: relative; z-index: 1; }
+
+    .screen { width: 100%; display: none; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+
+    .start-crown { font-size: 72px; margin-bottom: 8px; animation: bounce 2s infinite; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    .start-title { font-size: 28px; font-weight: bold; color: #c0006a; text-shadow: 2px 2px 0 #ffd6ea; margin-bottom: 4px; text-align: center; }
+    .start-subtitle { font-size: 15px; color: #9a4f7a; margin-bottom: 32px; text-align: center; }
+    .subject-label { font-size: 16px; color: #7a3a6a; font-weight: bold; margin-bottom: 12px; }
+    .subject-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .subject-btn { width: 100%; padding: 18px 16px; border: none; border-radius: 20px; font-size: 22px; font-weight: bold; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 6px 0 rgba(0,0,0,0.15); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; }
+    .subject-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+    .subject-btn .btn-icon { font-size: 32px; }
+    .subject-btn .btn-text { display: flex; flex-direction: column; align-items: flex-start; }
+    .subject-btn .btn-name { font-size: 20px; line-height: 1.2; }
+    .subject-btn .btn-desc { font-size: 12px; font-weight: normal; opacity: 0.8; margin-top: 2px; }
+    .btn-sansu { background: linear-gradient(135deg, #ff9ad5, #ff6bb5); color: white; }
+    .btn-kokugo { background: linear-gradient(135deg, #b87fff, #9955ff); color: white; }
+    .btn-eigo { background: linear-gradient(135deg, #5bc8ff, #2a9dd8); color: white; }
+    .btn-all { background: linear-gradient(135deg, #ffd700, #ffaa00); color: white; }
+
+    .quiz-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .quiz-subject-badge { padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; color: white; }
+    .badge-sansu { background: #ff6bb5; }
+    .badge-kokugo { background: #9955ff; }
+    .badge-eigo { background: #2a9dd8; }
+    .badge-all { background: #ffaa00; }
+    .score-area { display: flex; gap: 12px; align-items: center; }
+    .score-box { background: white; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #c0006a; box-shadow: 0 2px 8px rgba(192,0,106,0.15); }
+    .streak-box { background: linear-gradient(135deg, #ffd700, #ffaa00); border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: white; box-shadow: 0 2px 8px rgba(255,170,0,0.3); }
+
+    .progress-bar-wrap { width: 100%; height: 10px; background: rgba(255,255,255,0.5); border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #ff6bb5, #ff9ad5); border-radius: 5px; transition: width 0.4s ease; }
+
+    .question-card { width: 100%; background: white; border-radius: 24px; padding: 28px 20px; text-align: center; box-shadow: 0 8px 32px rgba(192,0,106,0.12); margin-bottom: 20px; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .question-card::before { content: ''; position: absolute; top: -30px; right: -30px; width: 80px; height: 80px; background: linear-gradient(135deg, #ffe4f0, #f8d7f8); border-radius: 50%; }
+    .q-num { font-size: 13px; color: #b090a0; margin-bottom: 8px; }
+    .q-subject-icon { font-size: 32px; margin-bottom: 8px; }
+    .q-text { font-size: 24px; font-weight: bold; color: #3a2050; line-height: 1.4; }
+
+    .choices { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .choice-btn { width: 100%; padding: 16px 20px; border: 3px solid #e8d0f0; border-radius: 16px; background: white; font-size: 20px; font-weight: bold; color: #3a2050; cursor: pointer; transition: all 0.15s; text-align: center; box-shadow: 0 3px 0 #e8d0f0; }
+    .choice-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #e8d0f0; }
+    .choice-btn.correct { background: linear-gradient(135deg, #7fff9a, #40d060); border-color: #30b050; color: white; box-shadow: 0 3px 0 #20903a; transform: scale(1.03); }
+    .choice-btn.wrong { background: linear-gradient(135deg, #ff9a9a, #ff5555); border-color: #dd3333; color: white; box-shadow: 0 3px 0 #bb2222; }
+    .choice-btn.disabled { pointer-events: none; opacity: 0.45; }
+    .choice-btn.show-answer { background: linear-gradient(135deg, #7fff9a, #40d060); border-color: #30b050; color: white; opacity: 1; }
+
+    .feedback { margin-top: 16px; padding: 14px 20px; border-radius: 16px; font-size: 18px; font-weight: bold; text-align: center; width: 100%; display: none; }
+    .feedback.correct-fb { background: linear-gradient(135deg, #d4ffe0, #a0f0b0); color: #1a8030; border: 2px solid #70d080; }
+    .feedback.wrong-fb { background: linear-gradient(135deg, #ffe0e0, #ffc0c0); color: #c02020; border: 2px solid #ff9090; }
+
+    .firework { position: fixed; pointer-events: none; z-index: 100; font-size: 32px; }
+
+    .result-crown { font-size: 80px; margin-bottom: 8px; animation: bounce 1.5s infinite; }
+    .result-title { font-size: 26px; font-weight: bold; color: #c0006a; text-align: center; margin-bottom: 4px; }
+    .result-score-card { background: white; border-radius: 24px; padding: 24px 32px; text-align: center; box-shadow: 0 8px 32px rgba(192,0,106,0.15); margin: 20px 0; width: 100%; }
+    .result-score-num { font-size: 64px; font-weight: bold; color: #c0006a; line-height: 1; }
+    .result-score-label { font-size: 18px; color: #9a6a8a; margin-top: 4px; }
+    .result-msg { font-size: 18px; color: #7a4a6a; text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .result-stars { font-size: 36px; letter-spacing: 4px; margin-bottom: 8px; }
+    .result-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .btn-retry { width: 100%; padding: 16px; background: linear-gradient(135deg, #ff9ad5, #ff6bb5); border: none; border-radius: 16px; font-size: 18px; font-weight: bold; color: white; cursor: pointer; box-shadow: 0 5px 0 #d04090; transition: all 0.15s; }
+    .btn-retry:active { transform: translateY(4px); box-shadow: 0 1px 0 #d04090; }
+    .btn-home { width: 100%; padding: 14px; background: white; border: 3px solid #e0c0d0; border-radius: 16px; font-size: 16px; font-weight: bold; color: #9a6a8a; cursor: pointer; transition: all 0.15s; }
+    .btn-home:active { background: #f8eaf4; }
+  </style>
+</head>
+<body>
+<div class="bg-stars" id="bgStars"></div>
+<div class="container">
+  <div class="screen active" id="screenStart">
+    <div class="start-crown">👑</div>
+    <div class="start-title">おひめさまべんきょう</div>
+    <div class="start-subtitle">✨ がんばるとほしがもらえるよ ✨</div>
+    <div class="subject-label">📚 きょうはなにをべんきょうする？</div>
+    <div class="subject-btns">
+      <button class="subject-btn btn-sansu" onclick="startQuiz('sansu')">
+        <span class="btn-icon">🔢</span>
+        <span class="btn-text"><span class="btn-name">さんすう</span><span class="btn-desc">たしざん・ひきざん・かけざん</span></span>
+      </button>
+      <button class="subject-btn btn-kokugo" onclick="startQuiz('kokugo')">
+        <span class="btn-icon">📖</span>
+        <span class="btn-text"><span class="btn-name">こくご（かんじ）</span><span class="btn-desc">2年生のかんじ・ことば</span></span>
+      </button>
+      <button class="subject-btn btn-eigo" onclick="startQuiz('eigo')">
+        <span class="btn-icon">🌍</span>
+        <span class="btn-text"><span class="btn-name">えいご</span><span class="btn-desc">どうぶつ・いろ・かず</span></span>
+      </button>
+      <button class="subject-btn btn-all" onclick="startQuiz('all')">
+        <span class="btn-icon">⭐</span>
+        <span class="btn-text"><span class="btn-name">ぜんぶまぜまぜ！</span><span class="btn-desc">さんすう＋こくご＋えいご</span></span>
+      </button>
+    </div>
+  </div>
+  <div class="screen" id="screenQuiz">
+    <div class="quiz-header">
+      <div id="subjectBadge" class="quiz-subject-badge">さんすう</div>
+      <div class="score-area">
+        <div class="score-box" id="scoreBox">⭐ 0</div>
+        <div class="streak-box" id="streakBox">🔥 0</div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="question-card">
+      <div class="q-num" id="qNum">もんだい 1 / 10</div>
+      <div class="q-subject-icon" id="qIcon">🔢</div>
+      <div class="q-text" id="qText">もんだいをよみこんでいます...</div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <div class="screen" id="screenResult">
+    <div class="result-crown">👑</div>
+    <div class="result-stars" id="resultStars">⭐⭐⭐⭐⭐</div>
+    <div class="result-title" id="resultTitle">すごい！パーフェクト！</div>
+    <div class="result-score-card">
+      <div class="result-score-num" id="resultNum">10</div>
+      <div class="result-score-label" id="resultLabel">10もん せいかい！</div>
+    </div>
+    <div class="result-msg" id="resultMsg">おひめさまにんていしょうをあげます！✨</div>
+    <div class="result-btns">
+      <button class="btn-retry" id="btnRetry" onclick="retryQuiz()">🔄 もういちどやる</button>
+      <button class="btn-home" onclick="goHome()">🏠 きょうかをえらぶ</button>
+    </div>
+  </div>
+</div>
+<script>
+const questions = {
+  sansu: [
+    { q: '38 ＋ 47', a: '85', choices: ['75', '85', '95', '80'], icon: '🔢' },
+    { q: '62 ＋ 29', a: '91', choices: ['81', '91', '101', '89'], icon: '🔢' },
+    { q: '75 ー 38', a: '37', choices: ['27', '33', '37', '47'], icon: '🔢' },
+    { q: '93 ー 56', a: '37', choices: ['37', '47', '33', '43'], icon: '🔢' },
+    { q: '6 × 7', a: '42', choices: ['36', '42', '48', '54'], icon: '⭐' },
+    { q: '8 × 9', a: '72', choices: ['63', '72', '81', '64'], icon: '⭐' },
+    { q: '7 × 6', a: '42', choices: ['35', '42', '49', '48'], icon: '⭐' },
+    { q: '9 × 4', a: '36', choices: ['27', '32', '36', '40'], icon: '⭐' },
+    { q: '54 ＋ 37', a: '91', choices: ['81', '91', '87', '97'], icon: '🔢' },
+    { q: '80 ー 43', a: '37', choices: ['37', '47', '43', '33'], icon: '🔢' },
+    { q: '3 × 8', a: '24', choices: ['21', '24', '27', '18'], icon: '⭐' },
+    { q: '5 × 9', a: '45', choices: ['40', '45', '50', '54'], icon: '⭐' },
+    { q: '67 ＋ 24', a: '91', choices: ['81', '85', '91', '97'], icon: '🔢' },
+    { q: '100 ー 64', a: '36', choices: ['36', '44', '46', '34'], icon: '🔢' },
+    { q: '4 × 7', a: '28', choices: ['24', '28', '32', '21'], icon: '⭐' },
+  ],
+  kokugo: [
+    { q: '「はな」をかんじでかくと？', a: '花', choices: ['草', '花', '木', '葉'], icon: '📖' },
+    { q: '「あめ」をかんじでかくと？', a: '雨', choices: ['雨', '雲', '風', '空'], icon: '📖' },
+    { q: '「山」はなんとよむ？', a: 'やま', choices: ['かわ', 'やま', 'うみ', 'そら'], icon: '📖' },
+    { q: '「空」はなんとよむ？', a: 'そら', choices: ['うみ', 'やま', 'そら', 'かわ'], icon: '📖' },
+    { q: '「魚」はなんとよむ？', a: 'さかな', choices: ['さかな', 'とり', 'むし', 'いぬ'], icon: '📖' },
+    { q: '「星」はなんとよむ？', a: 'ほし', choices: ['つき', 'ほし', 'そら', 'ひ'], icon: '📖' },
+    { q: '「でんしゃ」をかんじでかくと？', a: '電車', choices: ['電話', '電車', '自車', '電気'], icon: '📖' },
+    { q: '「うた」をかんじでかくと？', a: '歌', choices: ['話', '聞', '歌', '読'], icon: '📖' },
+    { q: '「鳥」はなんとよむ？', a: 'とり', choices: ['ねこ', 'いぬ', 'とり', 'うし'], icon: '📖' },
+    { q: '「春」はなんとよむ？', a: 'はる', choices: ['なつ', 'あき', 'ふゆ', 'はる'], icon: '📖' },
+    { q: '「夏」はなんとよむ？', a: 'なつ', choices: ['はる', 'なつ', 'あき', 'ふゆ'], icon: '📖' },
+    { q: '「かお」をかんじでかくと？', a: '顔', choices: ['頭', '顔', '耳', '目'], icon: '📖' },
+    { q: '「友だち」の「友」はなんとよむ？', a: 'とも', choices: ['とも', 'こう', 'ゆう', 'もり'], icon: '📖' },
+    { q: '「海」はなんとよむ？', a: 'うみ', choices: ['かわ', 'みず', 'うみ', 'いけ'], icon: '📖' },
+    { q: '「光」はなんとよむ？', a: 'ひかり', choices: ['かぜ', 'ひかり', 'おと', 'いろ'], icon: '📖' },
+  ],
+  eigo: [
+    { q: '🐱 ねこ はえいごでなんという？', a: 'cat', choices: ['dog', 'cat', 'bird', 'fish'], icon: '🌍' },
+    { q: '🐕 いぬ はえいごでなんという？', a: 'dog', choices: ['cat', 'dog', 'pig', 'cow'], icon: '🌍' },
+    { q: '🐘 ぞう はえいごでなんという？', a: 'elephant', choices: ['lion', 'tiger', 'elephant', 'bear'], icon: '🌍' },
+    { q: '🔴 あか はえいごでなんという？', a: 'red', choices: ['blue', 'red', 'green', 'pink'], icon: '🌍' },
+    { q: '🔵 あお はえいごでなんという？', a: 'blue', choices: ['blue', 'red', 'yellow', 'green'], icon: '🌍' },
+    { q: '💛 きいろ はえいごでなんという？', a: 'yellow', choices: ['orange', 'white', 'yellow', 'purple'], icon: '🌍' },
+    { q: '「apple」はなんのこと？', a: 'りんご', choices: ['みかん', 'りんご', 'いちご', 'ぶどう'], icon: '🌍' },
+    { q: '「banana」はなんのこと？', a: 'バナナ', choices: ['メロン', 'バナナ', 'もも', 'なし'], icon: '🌍' },
+    { q: '「1・2・3」はえいごで？', a: 'one two three', choices: ['two three four', 'one two three', 'one three five', 'zero one two'], icon: '🌍' },
+    { q: '🐧 ペンギン はえいごで？', a: 'penguin', choices: ['penguin', 'parrot', 'pigeon', 'peacock'], icon: '🌍' },
+    { q: '「head」はからだのどこ？', a: 'あたま', choices: ['て', 'あし', 'あたま', 'め'], icon: '🌍' },
+    { q: '「water」はなんのこと？', a: 'みず', choices: ['ジュース', 'みず', 'ぎゅうにゅう', 'おちゃ'], icon: '🌍' },
+    { q: '🌙 つき はえいごで？', a: 'moon', choices: ['star', 'moon', 'sun', 'sky'], icon: '🌍' },
+    { q: '☀️ たいよう はえいごで？', a: 'sun', choices: ['moon', 'rain', 'sun', 'wind'], icon: '🌍' },
+    { q: '「book」はなんのこと？', a: 'ほん', choices: ['ほん', 'えんぴつ', 'かばん', 'つくえ'], icon: '🌍' },
+  ]
+};
+let currentSubject='sansu',currentQuestions=[],currentIndex=0,score=0,streak=0,answered=false,totalQuestions=10;
+function initBgStars(){const c=document.getElementById('bgStars'),icons=['✨','⭐','💫','🌟','✦'];for(let i=0;i<20;i++){const s=document.createElement('div');s.className='bg-star';s.textContent=icons[Math.floor(Math.random()*icons.length)];s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=Math.random()*3+'s';s.style.animationDuration=(2.5+Math.random()*2)+'s';c.appendChild(s);}}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function startQuiz(subject){currentSubject=subject;score=0;streak=0;currentIndex=0;answered=false;let pool=[];if(subject==='all'){pool=[...shuffle(questions.sansu).slice(0,4),...shuffle(questions.kokugo).slice(0,3),...shuffle(questions.eigo).slice(0,3)];pool=shuffle(pool);}else{pool=shuffle(questions[subject]).slice(0,totalQuestions);}currentQuestions=pool;const badge=document.getElementById('subjectBadge');const labels={sansu:'さんすう 🔢',kokugo:'こくご 📖',eigo:'えいご 🌍',all:'ぜんぶ ⭐'};const classes={sansu:'badge-sansu',kokugo:'badge-kokugo',eigo:'badge-eigo',all:'badge-all'};badge.textContent=labels[subject];badge.className='quiz-subject-badge '+classes[subject];showScreen('screenQuiz');showQuestion();}
+function showQuestion(){answered=false;const q=currentQuestions[currentIndex];const total=currentQuestions.length;document.getElementById('qNum').textContent='もんだい '+(currentIndex+1)+' / '+total;document.getElementById('qIcon').textContent=q.icon;document.getElementById('qText').textContent=q.q;document.getElementById('scoreBox').textContent='⭐ '+score;document.getElementById('streakBox').textContent='🔥 '+streak;document.getElementById('progressBar').style.width=(currentIndex/total*100)+'%';document.getElementById('feedback').style.display='none';const shuffledChoices=shuffle(q.choices);const choicesEl=document.getElementById('choices');choicesEl.innerHTML='';shuffledChoices.forEach(c=>{const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=c;btn.onclick=()=>selectAnswer(c,q.a);choicesEl.appendChild(btn);});}
+function selectAnswer(selected,correct){if(answered)return;answered=true;const isCorrect=selected===correct;const btns=document.querySelectorAll('.choice-btn');const feedback=document.getElementById('feedback');btns.forEach(btn=>{btn.classList.add('disabled');if(btn.textContent===correct)btn.classList.add(isCorrect?'correct':'show-answer');if(btn.textContent===selected&&!isCorrect)btn.classList.add('wrong');});if(isCorrect){score++;streak++;feedback.textContent='🎉 すごい！せいかい！'+(streak>=3?' 🔥'+streak+'れんぞく！':'');feedback.className='feedback correct-fb';launchFireworks();}else{streak=0;feedback.textContent='💦 ざんねん…こたえは「'+correct+'」だよ';feedback.className='feedback wrong-fb';}feedback.style.display='block';document.getElementById('scoreBox').textContent='⭐ '+score;document.getElementById('streakBox').textContent='🔥 '+streak;setTimeout(nextQuestion,1800);}
+function nextQuestion(){currentIndex++;if(currentIndex>=currentQuestions.length){showResult();}else{showQuestion();}}
+function launchFireworks(){const emojis=['✨','🌟','💫','⭐','🎉','🎊','💖','👑'];for(let i=0;i<6;i++){setTimeout(()=>{const fw=document.createElement('div');fw.className='firework';fw.textContent=emojis[Math.floor(Math.random()*emojis.length)];fw.style.left=(10+Math.random()*80)+'%';fw.style.top=(5+Math.random()*60)+'%';fw.style.fontSize=(24+Math.random()*20)+'px';fw.style.animation='none';document.body.appendChild(fw);fw.animate([{opacity:1,transform:'scale(0.5) translateY(0)'},{opacity:0,transform:'scale(1.5) translateY(-'+(40+Math.random()*60)+'px)'}],{duration:800,easing:'ease-out'}).onfinish=()=>fw.remove();},i*100);}}
+function showResult(){const total=currentQuestions.length;const pct=score/total;document.getElementById('resultNum').textContent=score;document.getElementById('resultLabel').textContent=total+'もん せいかい！';document.getElementById('progressBar').style.width='100%';let stars='',title='',msg='';if(pct===1){stars='⭐⭐⭐⭐⭐';title='すごい！パーフェクト！✨';msg='ぜんもんせいかい！おひめさまにんていしょうをあげます！💖';}else if(pct>=0.8){stars='⭐⭐⭐⭐';title='とってもじょうず！';msg='もうすこしでパーフェクト！つぎはできるよ💪';}else if(pct>=0.6){stars='⭐⭐⭐';title='よくできました！';msg='まちがえたところをまたれんしゅうしてみよう！📚';}else if(pct>=0.4){stars='⭐⭐';title='がんばった！';msg='もう一かいやってみるともっとできるようになるよ！✊';}else{stars='⭐';title='チャレンジよくできました！';msg='むずかしくてもあきらめないでね！💪';}document.getElementById('resultStars').textContent=stars;document.getElementById('resultTitle').textContent=title;document.getElementById('resultMsg').textContent=msg;const subjects={sansu:'さんすう',kokugo:'こくご',eigo:'えいご',all:'ぜんぶまぜまぜ'};document.getElementById('btnRetry').textContent='🔄 '+subjects[currentSubject]+' をもういちどやる';showScreen('screenResult');if(pct>=0.8){for(let i=0;i<5;i++)setTimeout(launchFireworks,i*400);}}
+function retryQuiz(){startQuiz(currentSubject);}
+function goHome(){showScreen('screenStart');}
+initBgStars();
+</script>
+</body>
+</html>
